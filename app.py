@@ -1,3 +1,5 @@
+import bcrypt
+import mysql.connector
 from flask import Flask, render_template, request, redirect, url_for
 
 app = Flask(__name__)
@@ -10,10 +12,34 @@ def register():
         phone = request.form['phone']
         password = request.form['password']
 
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        val = (name, email, phone, hashed_password)
 
-        # Here, you would typically store this information in a database
-        # ... database operations ...
+        try:
+            mydb = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="admin",database="projectsmile"
+            )
 
-        return redirect(url_for('login'))  # Redirect to login page or other success page
+
+            mycursor = mydb.cursor()
+
+            sql = "INSERT INTO users (name, email, phone, password) VALUES (%s, %s, %s, %s)"
+            val = (name, email, phone, hashed_password)
+            mycursor.execute(sql, val)
+
+            mydb.commit()
+            mycursor.close()
+            mydb.close()
+
+            return redirect(url_for('login'))  # Redirect to login page or other success page
+        
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return render_template('error.html', error_message=str(err))
 
     return render_template('register.html')
+
+if __name__== '__main__':
+    app.run(debug=True)
