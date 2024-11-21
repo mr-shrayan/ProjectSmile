@@ -1,6 +1,7 @@
 import bcrypt
 import mysql.connector
-from flask import Flask, render_template, request, redirect, url_for
+import base64
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 
 app = Flask(__name__)
 
@@ -40,6 +41,7 @@ def register():
             # return render_template('error.html', error_message=str(err))
 
     return render_template('register.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -78,5 +80,19 @@ def login():
             return redirect(url_for('register'))  # Redirect to registration page
 
     return render_template('login.html')
+
+@app.route('/capture', methods=['POST'])
+def capture_image():
+    image_data = request.json['imageData']
+
+    # Decode the base64 image data
+    image_bytes = base64.b64decode(image_data.split(',')[1])
+
+    # Store the image in the database (adjust for your database)
+    # ... (database connection and insertion logic)
+
+    return jsonify({'message': 'Image captured and stored successfully'})
+
+
 if __name__== '__main__':
     app.run(debug=True)
